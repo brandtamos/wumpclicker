@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>wumpr — wump clicker</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+  <nav>
+    <div class="nav-in">
+      <a class="logo" href="#top">
+        <img src="https://wumpr.com/images/logo.png" alt="wumpr"
+             onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
+        <span class="fallback">wumpr</span>
+      </a>
+      <ul class="nav-links">
+        <li><a href="#tools">Tools</a></li>
+        <li><a href="#services">Services</a></li>
+        <li><a href="#stats">Stats</a></li>
+      </ul>
+      <div class="nav-right">
+        <button id="flexBtn" class="flex-btn" aria-label="Flex your wump status">
+          <span class="fx-emoji">🐺</span><span class="fx-label">Flex</span>
+        </button>
+        <div class="balance">
+          <span class="coin"></span><b id="navBal">0</b>
+          <span class="rate"><span id="navWps">0.0</span>/s</span>
+        </div>
+      </div>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero" id="top">
+    <div class="hero-in">
+      <div class="eyebrow">It's time to join the wumprcent</div>
+      <h1>Welcome to wumpr.</h1>
+      <p class="lead">Start clicking to turn your wumps into lumps.</p>
+
+      <div class="hero-main">
+        <div class="wump-stage">
+          <button class="wump-badge" id="wump" aria-label="Mint a wump">
+            <span class="glyph">wump</span>
+            <div class="floaters" id="floaters"></div>
+          </button>
+          <svg class="wump-ring" viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg"
+               xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true">
+            <defs>
+              <path id="wumpArc" d="M140,140 m-122,0 a122,122 0 1,1 244,0 a122,122 0 1,1 -244,0"/>
+            </defs>
+            <text><textPath href="#wumpArc" xlink:href="#wumpArc" startOffset="25%"
+                  text-anchor="middle">click to wump up the jams</textPath></text>
+          </svg>
+          <div class="sparks" id="sparks"></div>
+        </div>
+        <div class="hero-stats">
+          <div class="count" id="count">0</div>
+          <div class="count-sub">wumps in the bank</div>
+          <div class="wps-line">wumping at <b id="wps">0.0</b> wumps / sec</div>
+          <div class="click-hint">+<span id="pc">1</span> per manual wump</div>
+        </div>
+      </div>
+
+      <a class="scroll-down" href="#tools">Build your wumpire<span>&darr;</span></a>
+    </div>
+  </header>
+
+  <!-- TOOLS / UPGRADES -->
+  <section class="section paper2" id="tools">
+    <div class="wrap">
+      <h2 class="powerups-title">Wump tools</h2>
+      <div class="tools" id="upgrades"></div>
+    </div>
+  </section>
+
+  <!-- SERVICES / GENERATORS -->
+  <section class="section" id="services">
+    <div class="wrap">
+      <h2 class="powerups-title">Wump services</h2>
+      <div class="services" id="buildings"></div>
+    </div>
+  </section>
+
+  <!-- COUNTERS -->
+  <section class="counters" id="stats">
+    <div class="wrap">
+      <div class="counters-grid">
+        <div class="counter"><div class="num" id="cProcessed">0</div><div class="lbl">Wumps Processed</div></div>
+        <div class="counter"><div class="num" id="cSatisfied">0</div><div class="lbl">Satisfied Wumprs</div></div>
+        <div class="counter"><div class="num" id="cHours">0</div><div class="lbl">Wump/Hours Saved</div></div>
+        <div class="counter"><div class="num" id="cGrumbles">0</div><div class="lbl">Grumbles Brumbled</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="fine">
+      Progress saves automatically. Visit 
+      <a href="https://wumpr.com" target="_blank" rel="noopener">wumpr.com</a> to learn more. Wump responsibly.
+    </div>
+  </footer>
+
+  <div id="frenzyBanner"></div>
+
+  <div id="flexModal" class="modal-overlay" hidden>
+    <div class="modal-card">
+      <button class="modal-close" id="flexClose" aria-label="Close">&times;</button>
+      <div class="modal-title">Your Wump Status</div>
+      <pre id="flexText" class="flex-text"></pre>
+      <button id="flexCopy" class="flex-copy">Copy to clipboard</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
