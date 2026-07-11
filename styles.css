@@ -278,4 +278,25 @@
     font-family:'Poppins',sans-serif; font-weight:600; font-size:14px; cursor:pointer; transition:background .15s}
   .flex-copy:hover{background:#ff6aa9}
 
+  /* ---------- save / load modal ---------- */
+  .save-btn{background:var(--accent)}
+  .save-btn:hover{background:var(--accent-dark)}
+  .save-tabs{display:flex; gap:8px; margin-bottom:16px}
+  .save-tab{flex:1; background:var(--paper2); border:1px solid var(--line); color:var(--muted);
+    border-radius:10px; padding:9px; font-family:'Poppins',sans-serif; font-weight:600; font-size:13px;
+    cursor:pointer; transition:background .15s, color .15s}
+  .save-tab:hover{color:var(--text)}
+  .save-tab.active{background:var(--accent); color:#04211c; border-color:var(--accent)}
+  .save-hint{font-size:12px; color:var(--muted); line-height:1.5; margin-bottom:10px}
+  .save-text{display:block; width:100%; min-height:110px; resize:vertical;
+    font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-size:12px; line-height:1.5;
+    color:var(--text); background:var(--paper2); border:1px solid var(--line); border-radius:12px;
+    padding:12px 14px; margin:0 0 12px; word-break:break-all}
+  .save-text:focus{outline:2px solid var(--accent); outline-offset:1px}
+  .save-msg{font-size:12px; line-height:1.4; margin:-4px 0 12px; min-height:15px}
+  .save-msg.err{color:#ff6b6b}
+  .save-msg.ok{color:var(--accent)}
+  #importPane .flex-copy{background:var(--accent)}
+  #importPane .flex-copy:hover{background:var(--accent-dark)}
+
   @media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important; scroll-behavior:auto}}

@@ -325,6 +325,41 @@
       .catch(()=>{ flexCopy.textContent='Select text & press Ctrl+C'; });
   });
 
+  // ---- Save/Load modal ----
+  const saveModal=$('saveModal'), tabExport=$('tabExport'), tabImport=$('tabImport'),
+    exportPane=$('exportPane'), importPane=$('importPane'), exportText=$('exportText'),
+    exportCopy=$('exportCopy'), importText=$('importText'), importBtn=$('importBtn'), importMsg=$('importMsg');
+  function showExportTab(){
+    tabExport.classList.add('active'); tabImport.classList.remove('active');
+    exportPane.hidden=false; importPane.hidden=true;
+    exportText.value=encodeSaveCode(); exportCopy.textContent='Copy to clipboard';
+  }
+  function showImportTab(){
+    tabImport.classList.add('active'); tabExport.classList.remove('active');
+    importPane.hidden=false; exportPane.hidden=true;
+    importMsg.textContent=''; importMsg.className='save-msg';
+  }
+  $('saveBtn').addEventListener('click',()=>{ showExportTab(); saveModal.hidden=false; });
+  $('saveClose').addEventListener('click',()=>{ saveModal.hidden=true; });
+  saveModal.addEventListener('click',e=>{ if(e.target===saveModal) saveModal.hidden=true; });
+  tabExport.addEventListener('click',showExportTab);
+  tabImport.addEventListener('click',showImportTab);
+  exportCopy.addEventListener('click',()=>{
+    copyText(exportText.value)
+      .then(()=>{ exportCopy.textContent='Copied! ✓'; })
+      .catch(()=>{ exportCopy.textContent='Select text & press Ctrl+C'; });
+  });
+  importBtn.addEventListener('click',()=>{
+    try{
+      const d=decodeSaveCode(importText.value);
+      hydrateState(d); render(); save();
+      importMsg.textContent='Save loaded! ✓'; importMsg.className='save-msg ok';
+      importText.value='';
+    }catch(e){
+      importMsg.textContent=e.message||'Could not read that save code.'; importMsg.className='save-msg err';
+    }
+  });
+
   let last=performance.now();
   function loop(now){
     const dt=(now-last)/1000; last=now;
@@ -363,22 +398,55 @@
     requestAnimationFrame(loop);
   }
 
+  function snapshotState(){
+    return {v:1,wumps:state.wumps,total:state.total,clicks:state.clicks,frenzies:state.frenzies,
+      owned:state.owned,bought:state.bought,buildMult:state.buildMult,clickMult:state.clickMult,
+      genMult:state.genMult,clickWpsShare:state.clickWpsShare};
+  }
+  function hydrateState(d){
+    Object.assign(state,{wumps:d.wumps||0,total:d.total||0,clicks:d.clicks||0,frenzies:d.frenzies||0,
+      clickMult:d.clickMult||1,genMult:d.genMult||1,clickWpsShare:d.clickWpsShare||0});
+    buildings.forEach(b=>state.owned[b.id]=(d.owned&&d.owned[b.id])||0);
+    state.bought=(d.bought&&typeof d.bought==='object')?d.bought:{};
+    state.buildMult=(d.buildMult&&typeof d.buildMult==='object')?d.buildMult:{};
+  }
   function save(){
-    try{ localStorage.setItem(SAVE_KEY,JSON.stringify({
-      wumps:state.wumps,total:state.total,clicks:state.clicks,frenzies:state.frenzies,owned:state.owned,
-      bought:state.bought,buildMult:state.buildMult,clickMult:state.clickMult,
-      genMult:state.genMult,clickWpsShare:state.clickWpsShare
-    })); }catch(e){} }
+    try{ localStorage.setItem(SAVE_KEY,JSON.stringify(snapshotState())); }catch(e){} }
   function load(){
     try{
       const raw=localStorage.getItem(SAVE_KEY);
-      if(raw){ const d=JSON.parse(raw);
-        Object.assign(state,{wumps:d.wumps||0,total:d.total||0,clicks:d.clicks||0,frenzies:d.frenzies||0,
-          clickMult:d.clickMult||1,genMult:d.genMult||1,clickWpsShare:d.clickWpsShare||0});
-        if(d.owned) buildings.forEach(b=>state.owned[b.id]=d.owned[b.id]||0);
-        if(d.bought) state.bought=d.bought;
-        if(d.buildMult) state.buildMult=d.buildMult; }
+      if(raw) hydrateState(JSON.parse(raw));
     }catch(e){}
+  }
+
+  // ---- Save codes: obfuscated, portable export/import string ----
+  const CODE_PREFIX='WUMP1';
+  const CODE_KEY='wumpr-save-code-key-2024';
+  function xorStr(str,key){
+    let out='';
+    for(let i=0;i<str.length;i++) out+=String.fromCharCode(str.charCodeAt(i)^key.charCodeAt(i%key.length));
+    return out;
+  }
+  function hashStr(str){
+    let h=0;
+    for(let i=0;i<str.length;i++) h=(h*31+str.charCodeAt(i))>>>0;
+    return h.toString(36);
+  }
+  function encodeSaveCode(){
+    const payload=JSON.stringify(snapshotState());
+    const b64=btoa(xorStr(payload,CODE_KEY));
+    return CODE_PREFIX+'.'+hashStr(payload)+'.'+b64;
+  }
+  function decodeSaveCode(code){
+    const parts=String(code).replace(/\s+/g,'').split('.');
+    if(parts.length!==3||parts[0]!==CODE_PREFIX) throw new Error("That doesn't look like a wump save code.");
+    const [,checksum,b64]=parts;
+    let payload;
+    try{ payload=xorStr(atob(b64),CODE_KEY); }catch(e){ throw new Error('Save code is corrupted.'); }
+    if(hashStr(payload)!==checksum) throw new Error('Save code is corrupted.');
+    let d;
+    try{ d=JSON.parse(payload); }catch(e){ throw new Error('Save code is corrupted.'); }
+    return d;
   }
 
   buildShop();

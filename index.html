@@ -25,6 +25,9 @@
         <li><a href="#stats">Stats</a></li>
       </ul>
       <div class="nav-right">
+        <button id="saveBtn" class="flex-btn save-btn" aria-label="Save or load your game">
+          <span class="fx-emoji">💾</span><span class="fx-label">Save/Load</span>
+        </button>
         <button id="flexBtn" class="flex-btn" aria-label="Flex your wump status">
           <span class="fx-emoji">🐺</span><span class="fx-label">Flex</span>
         </button>
@@ -115,6 +118,28 @@
       <div class="modal-title">Your Wump Status</div>
       <pre id="flexText" class="flex-text"></pre>
       <button id="flexCopy" class="flex-copy">Copy to clipboard</button>
+    </div>
+  </div>
+
+  <div id="saveModal" class="modal-overlay" hidden>
+    <div class="modal-card">
+      <button class="modal-close" id="saveClose" aria-label="Close">&times;</button>
+      <div class="modal-title">Save &amp; Load</div>
+      <div class="save-tabs">
+        <button class="save-tab active" id="tabExport" type="button">Export</button>
+        <button class="save-tab" id="tabImport" type="button">Import</button>
+      </div>
+      <div id="exportPane">
+        <p class="save-hint">Copy this code to back up your progress or move it to another device.</p>
+        <textarea id="exportText" class="save-text" readonly></textarea>
+        <button id="exportCopy" class="flex-copy">Copy to clipboard</button>
+      </div>
+      <div id="importPane" hidden>
+        <p class="save-hint">Paste a wump save code below to load it. This will overwrite your current progress.</p>
+        <textarea id="importText" class="save-text" placeholder="Paste your save code here..."></textarea>
+        <div id="importMsg" class="save-msg"></div>
+        <button id="importBtn" class="flex-copy">Import save</button>
+      </div>
     </div>
   </div>
 
