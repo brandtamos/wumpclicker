@@ -243,7 +243,7 @@
       const open=navLinks.classList.toggle('open');
       hamburgerBtn.setAttribute('aria-expanded',open?'true':'false');
     });
-    navLinks.addEventListener('click',e=>{ if(e.target.closest('a')) closeMenu(); });
+    navLinks.addEventListener('click',e=>{ if(e.target.closest('a, button')) closeMenu(); });
     document.addEventListener('click',e=>{
       if(!navLinks.classList.contains('open')) return;
       if(!e.target.closest('#navLinks')&&!e.target.closest('#hamburgerBtn')) closeMenu();
@@ -374,6 +374,19 @@
     }catch(e){
       importMsg.textContent=e.message||'Could not read that save code.'; importMsg.className='save-msg err';
     }
+  });
+
+  // ---- Reset game ----
+  const resetModal=$('resetModal'), resetBtn=$('resetBtn'), resetClose=$('resetClose'),
+    resetCancel=$('resetCancel'), resetConfirm=$('resetConfirm');
+  resetBtn.addEventListener('click',()=>{ resetModal.hidden=false; });
+  resetClose.addEventListener('click',()=>{ resetModal.hidden=true; });
+  resetCancel.addEventListener('click',()=>{ resetModal.hidden=true; });
+  resetModal.addEventListener('click',e=>{ if(e.target===resetModal) resetModal.hidden=true; });
+  resetConfirm.addEventListener('click',()=>{
+    hydrateState({});
+    try{ localStorage.removeItem(SAVE_KEY); }catch(e){}
+    location.reload();
   });
 
   let last=performance.now();

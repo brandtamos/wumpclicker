@@ -26,6 +26,7 @@
         <li><a href="#tools">Tools</a></li>
         <li><a href="#services">Services</a></li>
         <li><a href="#stats">Stats</a></li>
+        <li><button id="resetBtn" class="nav-link-btn" type="button">Reset Game</button></li>
       </ul>
       <div class="nav-right">
         <button id="saveBtn" class="flex-btn save-btn" aria-label="Save or load your game">
@@ -121,6 +122,16 @@
       <div class="modal-title">Your Wump Status</div>
       <pre id="flexText" class="flex-text"></pre>
       <button id="flexCopy" class="flex-copy">Copy to clipboard</button>
+    </div>
+  </div>
+
+  <div id="resetModal" class="modal-overlay" hidden>
+    <div class="modal-card">
+      <button class="modal-close" id="resetClose" aria-label="Close">&times;</button>
+      <div class="modal-title">Reset Game?</div>
+      <p class="save-hint">This will permanently erase all your wumps, services, and tools and start you over from zero. This cannot be undone.</p>
+      <button id="resetConfirm" class="flex-copy reset-danger">Yes, erase everything</button>
+      <button id="resetCancel" class="save-tab reset-cancel" type="button">Cancel</button>
     </div>
   </div>
 

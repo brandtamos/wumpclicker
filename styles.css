@@ -36,6 +36,10 @@
   .nav-links a{color:var(--muted); text-decoration:none; font-size:13px; font-weight:500;
     text-transform:uppercase; letter-spacing:.12em; transition:color .15s}
   .nav-links a:hover{color:var(--accent)}
+  .nav-link-btn{background:none; border:0; padding:0; margin:0; color:var(--muted); cursor:pointer;
+    font-family:inherit; font-size:13px; font-weight:500; text-transform:uppercase;
+    letter-spacing:.12em; transition:color .15s}
+  .nav-link-btn:hover{color:var(--pink)}
   .nav-right{display:flex; align-items:center; gap:10px; justify-self:end}
   .hamburger{display:none; flex-direction:column; justify-content:center; gap:5px;
     width:32px; height:32px; padding:0; background:none; border:0; cursor:pointer; justify-self:start}
@@ -72,8 +76,8 @@
       backdrop-filter:blur(8px); border-bottom:1px solid var(--line); padding:4px 20px;
     }
     .nav-links.open{display:flex}
-    .nav-links a{padding:14px 0; font-size:13px; letter-spacing:.06em;
-      border-top:1px solid var(--line)}
+    .nav-links a, .nav-links .nav-link-btn{padding:14px 0; font-size:13px; letter-spacing:.06em;
+      border-top:1px solid var(--line); width:100%; text-align:left}
     .nav-links li:first-child a{border-top:0}
     .balance{padding:6px 11px; gap:7px}
     .balance b{font-size:13px; min-width:0}
@@ -311,5 +315,10 @@
   .save-msg.ok{color:var(--accent)}
   #importPane .flex-copy{background:var(--accent)}
   #importPane .flex-copy:hover{background:var(--accent-dark)}
+
+  /* ---------- reset modal ---------- */
+  .reset-danger{background:#e5484d}
+  .reset-danger:hover{background:#c93a3f}
+  .reset-cancel{width:100%; margin-top:8px}
 
   @media (prefers-reduced-motion:reduce){*{animation:none !important; transition:none !important; scroll-behavior:auto}}
