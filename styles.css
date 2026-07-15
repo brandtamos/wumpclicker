@@ -37,6 +37,13 @@
     text-transform:uppercase; letter-spacing:.12em; transition:color .15s}
   .nav-links a:hover{color:var(--accent)}
   .nav-right{display:flex; align-items:center; gap:10px; justify-self:end}
+  .hamburger{display:none; flex-direction:column; justify-content:center; gap:5px;
+    width:32px; height:32px; padding:0; background:none; border:0; cursor:pointer; justify-self:start}
+  .hamburger span{display:block; width:100%; height:2px; background:var(--text); border-radius:2px;
+    transition:transform .2s, opacity .2s}
+  .hamburger[aria-expanded="true"] span:nth-child(1){transform:translateY(7px) rotate(45deg)}
+  .hamburger[aria-expanded="true"] span:nth-child(2){opacity:0}
+  .hamburger[aria-expanded="true"] span:nth-child(3){transform:translateY(-7px) rotate(-45deg)}
   .flex-btn{display:inline-flex; align-items:center; gap:6px; background:var(--pink); color:#fff;
     border:0; border-radius:40px; padding:8px 14px; font-family:'Poppins',sans-serif; font-weight:600;
     font-size:12.5px; cursor:pointer; white-space:nowrap; transition:background .15s, transform .08s}
@@ -56,10 +63,18 @@
     border-left:1px solid rgba(255,255,255,.2); padding-left:9px;
     display:inline-block; min-width:52px; text-align:right}
   @media (max-width:640px){
-    .nav-in{padding:10px 12px; gap:6px}
-    .logo{font-size:14px} .logo img{height:22px}
-    .nav-links{gap:12px}
-    .nav-links a{font-size:11px; letter-spacing:.04em}
+    .nav-in{padding:10px 12px; gap:6px; grid-template-columns:auto 1fr auto}
+    .logo{font-size:14px; justify-self:center} .logo img{height:22px}
+    .hamburger{display:flex}
+    .nav-links{
+      display:none; position:absolute; top:100%; left:0; right:0; grid-column:1/-1;
+      justify-self:stretch; flex-direction:column; gap:0; background:rgba(0,0,0,.95);
+      backdrop-filter:blur(8px); border-bottom:1px solid var(--line); padding:4px 20px;
+    }
+    .nav-links.open{display:flex}
+    .nav-links a{padding:14px 0; font-size:13px; letter-spacing:.06em;
+      border-top:1px solid var(--line)}
+    .nav-links li:first-child a{border-top:0}
     .balance{padding:6px 11px; gap:7px}
     .balance b{font-size:13px; min-width:0}
     .balance .rate{display:none}
@@ -68,8 +83,6 @@
     .nav-right{gap:6px}
   }
   @media (max-width:400px){
-    .nav-links{gap:10px}
-    .nav-links a{font-size:10px; letter-spacing:.02em}
     .logo img{height:20px}
   }
 

@@ -14,12 +14,15 @@
 
   <nav>
     <div class="nav-in">
+      <button id="hamburgerBtn" class="hamburger" aria-label="Toggle menu" aria-expanded="false" aria-controls="navLinks">
+        <span></span><span></span><span></span>
+      </button>
       <a class="logo" href="#top">
         <img src="https://wumpr.com/images/logo.png" alt="wumpr"
              onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">
         <span class="fallback">wumpr</span>
       </a>
-      <ul class="nav-links">
+      <ul class="nav-links" id="navLinks">
         <li><a href="#tools">Tools</a></li>
         <li><a href="#services">Services</a></li>
         <li><a href="#stats">Stats</a></li>
