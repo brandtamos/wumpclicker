@@ -78,7 +78,7 @@
   buildings.forEach(b=>state.owned[b.id]=0);
   const SAVE_KEY='wump_clicker_save_v2';
   const isTouch=window.matchMedia('(hover: none)').matches;
-  const FRENZY_MULT=7, FRENZY_MS=15000; let frenzyUntil=0; let ringAtMax=false;
+  const FRENZY_MIN=5, FRENZY_MAX=15, FRENZY_MS=15000; let frenzyUntil=0; let curFrenzyMult=FRENZY_MIN; let ringAtMax=false;
 
   const SUF=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc'];
   function fmt(n){
@@ -90,7 +90,7 @@
   const wpsOf =b=>b.wps*state.owned[b.id]*state.genMult*(state.buildMult[b.id]||1);
   const baseWps=()=>buildings.reduce((s,b)=>s+wpsOf(b),0);
   const totalAssets=()=>buildings.reduce((s,b)=>s+state.owned[b.id],0);
-  const frenzyMult=()=>performance.now()<frenzyUntil?FRENZY_MULT:1;
+  const frenzyMult=()=>performance.now()<frenzyUntil?curFrenzyMult:1;
   const overwumpOn=()=>!!state.bought.overwump&&ringAtMax;
   const runtimeMult=()=>frenzyMult()*(overwumpOn()?2:1);
   const certMult=()=>state.bought.cert?1+0.01*totalAssets():1;
@@ -256,7 +256,10 @@
   const banner=document.getElementById('frenzyBanner');
   let wolf=null, wolfRAF=null, wolfTimer=null;
 
-  function startFrenzy(){ frenzyUntil=performance.now()+FRENZY_MS; state.frenzies++; save(); }
+  function startFrenzy(){
+    curFrenzyMult=Math.floor(FRENZY_MIN+Math.random()*(FRENZY_MAX-FRENZY_MIN+1));
+    frenzyUntil=performance.now()+FRENZY_MS; state.frenzies++; save();
+  }
   function removeWolf(){
     if(wolfRAF){cancelAnimationFrame(wolfRAF); wolfRAF=null;}
     if(wolfTimer){clearTimeout(wolfTimer); wolfTimer=null;}
@@ -422,7 +425,7 @@
     } else ringAtMax=false;
     if(banner){
       if(performance.now()<frenzyUntil){
-        banner.textContent='🐺 WUMP FRENZY ×'+FRENZY_MULT+' · '+Math.ceil((frenzyUntil-performance.now())/1000)+'s';
+        banner.textContent='🐺 WUMP FRENZY ×'+curFrenzyMult+' · '+Math.ceil((frenzyUntil-performance.now())/1000)+'s';
         banner.classList.add('on');
       } else banner.classList.remove('on');
     }
