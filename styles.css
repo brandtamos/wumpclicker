@@ -76,7 +76,7 @@
       backdrop-filter:blur(8px); border-bottom:1px solid var(--line); padding:4px 20px;
     }
     .nav-links.open{display:flex}
-    .nav-links a, .nav-links .nav-link-btn{padding:14px 0; font-size:13px; letter-spacing:.06em;
+    .nav-links a, .nav-links .nav-link-btn{display:block; padding:14px 0; font-size:13px; letter-spacing:.06em;
       border-top:1px solid var(--line); width:100%; text-align:left}
     .nav-links li:first-child a{border-top:0}
     .balance{padding:6px 11px; gap:7px}
