@@ -369,6 +369,8 @@
     $('navBal').textContent=fmt(state.wumps);
     $('count').textContent=fmt(state.wumps);
     $('cProcessed').textContent=fmt(state.total);
+    $('navWps').textContent=fmt(totalWps());
+    $('wps').textContent=fmt(totalWps());
     $('cHours').textContent=fmt(totalWps());
     buildings.forEach(b=>{ const aff=state.wumps>=costOf(b),btn=$('b_'+b.id);
       if(btn.disabled===aff){btn.disabled=!aff; btn.classList.toggle('affordable',aff);
