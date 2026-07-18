@@ -103,11 +103,15 @@
   const isTouch=window.matchMedia('(hover: none)').matches;
   const FRENZY_MIN=5, FRENZY_MAX=15, FRENZY_MS=15000; let frenzyUntil=0; let curFrenzyMult=FRENZY_MIN; let ringAtMax=false;
 
-  const SUF=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc'];
+  const SUF=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','UDc','DDc','TDc','QaDc','QiDc','SxDc','SpDc','OcDc','NoDc','Vg'];
   function fmt(n){
     if(n<1000) return (n>=100||Number.isInteger(n))?Math.floor(n).toString():n.toFixed(n<10?1:0);
-    let i=0; while(n>=1000&&i<SUF.length-1){n/=1000;i++;}
-    return n.toFixed(n<10?2:n<100?1:0)+SUF[i];
+    const tier=Math.floor(Math.log10(n)/3);
+    if(tier<SUF.length){
+      const scaled=n/Math.pow(1000,tier);
+      return scaled.toFixed(scaled<10?2:scaled<100?1:0)+SUF[tier];
+    }
+    return n.toExponential(2).replace('e+','e');
   }
   const costOf=b=>Math.floor(b.base*Math.pow(1.15,state.owned[b.id]));
   const wpsOf =b=>b.wps*state.owned[b.id]*state.genMult*(state.buildMult[b.id]||1);
