@@ -66,7 +66,7 @@
      desc:'Accredited wumping. <b>Click power +1% per generator you own.</b>'},
     {id:'overwump',icon:'⚡',cost:600000000,name:'Overwump Drive',
      desc:'While the orbit is maxed out and sparking, <b>all production ×2.</b>'},
-    {id:'d_stance',icon:'🖧',cost:900000000,name:'Wumpstance Cluster',
+    {id:'d_stance',icon:'🎛️',cost:900000000,name:'Wumpstance Cluster',
      desc:'Horizontal wump scaling. <b>Wumpstance produces ×2.</b>', unlock:()=>state.owned.stance>=10,
      apply:s=>s.buildMult.stance=(s.buildMult.stance||1)*2},
     {id:'interest',icon:'💰',cost:2500000000,name:"Kimberly's Compound Interest",
