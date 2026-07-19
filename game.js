@@ -146,6 +146,7 @@
       const btn=document.createElement('button');
       btn.className='tool'; btn.id='u_'+u.id;
       btn.innerHTML='<span class="t-ic">'+u.icon+'</span><span class="t-owned" aria-hidden="true">✓</span>'+
+        (u.id==='interest'?'<span class="t-rate" id="rate_'+u.id+'"></span>':'')+
         '<span class="tip"><b>'+u.name+'</b><br>'+u.desc+
         '<span class="c">Cost: '+fmt(u.cost)+' wumps</span></span>';
       btn.addEventListener('click',()=>onToolClick(u,btn));
@@ -208,9 +209,16 @@
       btn.classList.toggle('cant',!owned&&!aff);
       btn.title=owned?u.name+' — owned':u.name;
       const costEl=btn.querySelector('.tip .c');
-      if(costEl) costEl.textContent=owned?'✓ Owned':'Cost: '+fmt(u.cost)+' wumps';
+      if(costEl) costEl.textContent=owned?(u.id==='interest'?'Earning: +'+fmt(state.wumps*0.001)+'/s':'✓ Owned'):'Cost: '+fmt(u.cost)+' wumps';
       if(owned||aff) btn.classList.remove('tip-open');
     });
+    updateInterestRate();
+  }
+  function updateInterestRate(){
+    if(!state.bought.interest) return;
+    const rate=state.wumps*0.001;
+    const badge=$('rate_interest'); if(badge) badge.textContent='+'+fmt(rate)+'/s';
+    const tipC=document.querySelector('#u_interest .tip .c'); if(tipC) tipC.textContent='Earning: +'+fmt(rate)+'/s';
   }
 
   const wumpBtn=$('wump'),floaters=$('floaters');
@@ -425,6 +433,7 @@
     const inc=totalWps()*dt;
     if(inc>0){state.wumps+=inc; state.total+=inc;}
     if(state.bought.interest){ const g=state.wumps*0.001*dt; state.wumps+=g; state.total+=g; }
+    updateInterestRate();
     $('navBal').textContent=fmt(state.wumps);
     $('count').textContent=fmt(state.wumps);
     $('cProcessed').textContent=fmt(state.total);
