@@ -101,7 +101,7 @@
   buildings.forEach(b=>state.owned[b.id]=0);
   const SAVE_KEY='wump_clicker_save_v2';
   const isTouch=window.matchMedia('(hover: none)').matches;
-  const FRENZY_MIN=5, FRENZY_MAX=15, FRENZY_MS=15000; let frenzyUntil=0; let curFrenzyMult=FRENZY_MIN; let ringAtMax=false;
+  const FRENZY_MIN=5, FRENZY_MAX=15, FRENZY_MS=15000, FRENZY_STREAK_STEP=0.1; let frenzyUntil=0; let curFrenzyMult=FRENZY_MIN; let curFrenzyStreakBonus=0; let wolfSaltStreak=0; let ringAtMax=false;
 
   const SUF=['','K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','UDc','DDc','TDc','QaDc','QiDc','SxDc','SpDc','OcDc','NoDc','Vg'];
   function fmt(n){
@@ -117,7 +117,7 @@
   const wpsOf =b=>b.wps*state.owned[b.id]*state.genMult*(state.buildMult[b.id]||1);
   const baseWps=()=>buildings.reduce((s,b)=>s+wpsOf(b),0);
   const totalAssets=()=>buildings.reduce((s,b)=>s+state.owned[b.id],0);
-  const frenzyMult=()=>performance.now()<frenzyUntil?curFrenzyMult:1;
+  const frenzyMult=()=>performance.now()<frenzyUntil?curFrenzyMult+curFrenzyStreakBonus:1;
   const overwumpOn=()=>!!state.bought.overwump&&ringAtMax;
   const runtimeMult=()=>frenzyMult()*(overwumpOn()?2:1);
   const certMult=()=>state.bought.cert?1+0.01*totalAssets():1;
@@ -293,6 +293,8 @@
 
   function startFrenzy(){
     curFrenzyMult=Math.floor(FRENZY_MIN+Math.random()*(FRENZY_MAX-FRENZY_MIN+1));
+    wolfSaltStreak++;
+    curFrenzyStreakBonus=Math.round(wolfSaltStreak*FRENZY_STREAK_STEP*10)/10;
     frenzyUntil=performance.now()+FRENZY_MS; state.frenzies++; save();
   }
   function removeWolf(){
@@ -314,7 +316,7 @@
       const W=window.innerWidth,H=window.innerHeight;
       const x=Math.random()*(W-size-40)+20, y=Math.random()*(H-size-220)+140;
       wolf.style.transform='translate('+x+'px,'+y+'px)';
-      wolfTimer=setTimeout(removeWolf,6500); return;
+      wolfTimer=setTimeout(()=>{ wolfSaltStreak=0; removeWolf(); },6500); return;
     }
     let x=Math.random()*(window.innerWidth-size), y=Math.random()*(window.innerHeight-size);
     const spd=280, ang=Math.random()*Math.PI*2;
@@ -327,7 +329,7 @@
       if(x<=0){x=0;vx=Math.abs(vx);} else if(x>=W-size){x=W-size;vx=-Math.abs(vx);}
       if(y<=0){y=0;vy=Math.abs(vy);} else if(y>=H-size){y=H-size;vy=-Math.abs(vy);}
       wolf.style.transform='translate('+x+'px,'+y+'px)';
-      if(now-born>LIFE){ removeWolf(); return; }
+      if(now-born>LIFE){ wolfSaltStreak=0; removeWolf(); return; }
       wolfRAF=requestAnimationFrame(step);
     })(born);
   }
@@ -461,7 +463,7 @@
     } else ringAtMax=false;
     if(banner){
       if(performance.now()<frenzyUntil){
-        banner.textContent='🐺 WUMP FRENZY ×'+curFrenzyMult+' · '+Math.ceil((frenzyUntil-performance.now())/1000)+'s';
+        banner.textContent='🐺 WUMP FRENZY ×'+curFrenzyMult+(curFrenzyStreakBonus>0?' +'+curFrenzyStreakBonus.toFixed(1)+'x streak':'')+' · '+Math.ceil((frenzyUntil-performance.now())/1000)+'s';
         banner.classList.add('on');
       } else banner.classList.remove('on');
     }
