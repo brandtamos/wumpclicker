@@ -95,9 +95,11 @@
     {id:'d_ai',icon:'🧠',cost:1.4e17,name:'Wumpelligence Overclock',
      desc:'Teach the AI to wump twice as hard. <b>Artificial Wumpelligence produces ×2.</b>', unlock:()=>state.owned.ai>=12,
      apply:s=>s.buildMult.ai=(s.buildMult.ai||1)*2},
+    {id:'saltcure',icon:'🧂',cost:4000000000,name:'Cured Wolf Salt',
+     desc:"Frenzy streak bonus compounds the base multiplier (×1.1 per streak) instead of adding to it."},
   ];
 
-  const state = {wumps:0,total:0,clicks:0,frenzies:0,owned:{},bought:{},buildMult:{},clickMult:1,genMult:1,clickWpsShare:0};
+  const state = {wumps:0,total:0,clicks:0,frenzies:0,longestWolfStreak:0,owned:{},bought:{},buildMult:{},clickMult:1,genMult:1,clickWpsShare:0};
   buildings.forEach(b=>state.owned[b.id]=0);
   const SAVE_KEY='wump_clicker_save_v2';
   const isTouch=window.matchMedia('(hover: none)').matches;
@@ -117,7 +119,10 @@
   const wpsOf =b=>b.wps*state.owned[b.id]*state.genMult*(state.buildMult[b.id]||1);
   const baseWps=()=>buildings.reduce((s,b)=>s+wpsOf(b),0);
   const totalAssets=()=>buildings.reduce((s,b)=>s+state.owned[b.id],0);
-  const frenzyMult=()=>performance.now()<frenzyUntil?curFrenzyMult+curFrenzyStreakBonus:1;
+  const frenzyMult=()=>{
+    if(performance.now()>=frenzyUntil) return 1;
+    return state.bought.saltcure?curFrenzyMult*(1+curFrenzyStreakBonus):curFrenzyMult+curFrenzyStreakBonus;
+  };
   const overwumpOn=()=>!!state.bought.overwump&&ringAtMax;
   const runtimeMult=()=>frenzyMult()*(overwumpOn()?2:1);
   const certMult=()=>state.bought.cert?1+0.01*totalAssets():1;
@@ -294,6 +299,7 @@
   function startFrenzy(){
     curFrenzyMult=Math.floor(FRENZY_MIN+Math.random()*(FRENZY_MAX-FRENZY_MIN+1));
     wolfSaltStreak++;
+    if(wolfSaltStreak>state.longestWolfStreak) state.longestWolfStreak=wolfSaltStreak;
     curFrenzyStreakBonus=Math.round(wolfSaltStreak*FRENZY_STREAK_STEP*10)/10;
     frenzyUntil=performance.now()+FRENZY_MS; state.frenzies++; save();
   }
@@ -355,7 +361,8 @@
       r[2]+' Rank: '+r[1],
       '💰 '+fmt(state.total)+' lifetime wumps',
       '⚡ '+fmt(baseWps())+'/sec · 🏭 '+fmt(totalAssets())+' generators',
-      '🔥 '+f+' Wolf Salt frenz'+(f===1?'y':'ies')+' caught'
+      '🔥 '+f+' Wolf Salt frenz'+(f===1?'y':'ies')+' caught',
+      '🧂 Longest Wolf Salt streak: '+state.longestWolfStreak
     ];
     if(hi) lines.push('🏆 Top tier: '+hi.name+' '+hi.icon);
     lines.push('— build your wumpire · build.wumpr.com');
@@ -463,7 +470,8 @@
     } else ringAtMax=false;
     if(banner){
       if(performance.now()<frenzyUntil){
-        banner.textContent='🐺 WUMP FRENZY ×'+curFrenzyMult+(curFrenzyStreakBonus>0?' +'+curFrenzyStreakBonus.toFixed(1)+'x streak':'')+' · '+Math.ceil((frenzyUntil-performance.now())/1000)+'s';
+        const streakTxt=curFrenzyStreakBonus>0?(state.bought.saltcure?' ×'+(1+curFrenzyStreakBonus).toFixed(1)+' streak':' +'+curFrenzyStreakBonus.toFixed(1)+'x streak'):'';
+        banner.textContent='🐺 WUMP FRENZY ×'+curFrenzyMult+streakTxt+' · '+Math.ceil((frenzyUntil-performance.now())/1000)+'s';
         banner.classList.add('on');
       } else banner.classList.remove('on');
     }
@@ -472,11 +480,13 @@
 
   function snapshotState(){
     return {v:1,wumps:state.wumps,total:state.total,clicks:state.clicks,frenzies:state.frenzies,
+      longestWolfStreak:state.longestWolfStreak,
       owned:state.owned,bought:state.bought,buildMult:state.buildMult,clickMult:state.clickMult,
       genMult:state.genMult,clickWpsShare:state.clickWpsShare};
   }
   function hydrateState(d){
     Object.assign(state,{wumps:d.wumps||0,total:d.total||0,clicks:d.clicks||0,frenzies:d.frenzies||0,
+      longestWolfStreak:d.longestWolfStreak||0,
       clickMult:d.clickMult||1,genMult:d.genMult||1,clickWpsShare:d.clickWpsShare||0});
     buildings.forEach(b=>state.owned[b.id]=(d.owned&&d.owned[b.id])||0);
     state.bought=(d.bought&&typeof d.bought==='object')?d.bought:{};
