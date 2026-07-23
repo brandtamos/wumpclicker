@@ -536,3 +536,5 @@
   setInterval(save,10000);
   window.addEventListener('beforeunload',save);
 })();
+
+console.log("pmcollins14 is stinkyyyyyyy");
