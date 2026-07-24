@@ -533,7 +533,7 @@
 
   buildShop();
   load(); render(); requestAnimationFrame(loop);
-  setInterval(save,10000);
+  setInterval(save,2000);
   window.addEventListener('beforeunload',save);
 })();
 
