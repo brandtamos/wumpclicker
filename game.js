@@ -32,7 +32,7 @@
      flavor:'An intelligence that has learned to wump itself.'},
     {id:'great',  name:'The Great Wump',    icon:'🌌', base:4e16, wps:2.1e10,
      flavor:'A cosmic wump that dreams smaller wumps into being.'},
-    {id:'bigwife',name:'Wump Big Wife',     icon:'👰', base:6e17, wps:1.5e11,
+    {id:'bigwife',name:'Wump Big Wife',     icon:'👰🏻‍♀️', base:6e17, wps:1.5e11,
      flavor:'She married into wumps and now she runs the whole multiverse.'},
   ];
 
