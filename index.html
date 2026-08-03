@@ -8,7 +8,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="styles.css?v=1">
+  <link rel="stylesheet" href="styles.css?v=2">
 </head>
 <body>
 
@@ -90,6 +90,12 @@
   <section class="section" id="services">
     <div class="wrap">
       <h2 class="powerups-title">Wump services</h2>
+      <div class="qty-toggle" id="qtyToggle" role="group" aria-label="Purchase quantity">
+        <button type="button" class="qty-btn active" data-qty="1">Buy ×1</button>
+        <button type="button" class="qty-btn" data-qty="10">Buy ×10</button>
+        <button type="button" class="qty-btn" data-qty="100">Buy ×100</button>
+        <button type="button" class="qty-btn" data-qty="max">Buy Max</button>
+      </div>
       <div class="services" id="buildings"></div>
     </div>
   </section>
@@ -157,6 +163,6 @@
     </div>
   </div>
 
-  <script src="game.js?v=5"></script>
+  <script src="game.js?v=7"></script>
 </body>
 </html>

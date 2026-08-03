@@ -117,7 +117,22 @@
     }
     return n.toExponential(2).replace('e+','e');
   }
-  const costOf=b=>Math.floor(b.base*Math.pow(1.15,state.owned[b.id]));
+  const RATE=1.15;
+  let buyQty=1; // 1, 10, 100, or 'max'
+  const costForQty=(b,n)=>{
+    if(n<=0) return 0;
+    return Math.floor(b.base*Math.pow(RATE,state.owned[b.id])*(Math.pow(RATE,n)-1)/(RATE-1));
+  };
+  function maxAffordable(b){
+    const unitCost=b.base*Math.pow(RATE,state.owned[b.id]);
+    if(state.wumps<unitCost) return 0;
+    let n=Math.max(0,Math.floor(Math.log(1+state.wumps*(RATE-1)/unitCost)/Math.log(RATE)));
+    while(costForQty(b,n+1)<=state.wumps) n++;
+    while(n>0&&costForQty(b,n)>state.wumps) n--;
+    return n;
+  }
+  const qtyFor=b=>buyQty==='max'?maxAffordable(b):buyQty;
+  const sellValueFor=b=>state.owned[b.id]>0?Math.floor(b.base*Math.pow(RATE,state.owned[b.id]-1)*0.5):0;
   const wpsOf =b=>b.wps*state.owned[b.id]*state.genMult*(state.buildMult[b.id]||1);
   const baseWps=()=>buildings.reduce((s,b)=>s+wpsOf(b),0);
   const totalAssets=()=>buildings.reduce((s,b)=>s+state.owned[b.id],0);
@@ -135,19 +150,36 @@
   function buildShop(){
     const bEl=$('buildings');
     buildings.forEach(b=>{
+      const card=document.createElement('div');
+      card.className='svc-card';
       const btn=document.createElement('button');
-      btn.className='svc'; btn.id='b_'+b.id;
+      btn.type='button'; btn.className='svc-buy'; btn.id='b_'+b.id;
       btn.innerHTML=
         '<span class="svc-ic">'+b.icon+'</span>'+
         '<span><span class="svc-name">'+b.name+'</span>'+
         '<span class="svc-desc">'+b.flavor+'</span>'+
         '<span class="svc-yield" id="y_'+b.id+'"></span></span>'+
-        '<span class="svc-right"><span class="svc-cost" id="c_'+b.id+'">'+
+        '<span class="svc-right"><span class="svc-qty" id="q_'+b.id+'"></span>'+
+        '<span class="svc-cost" id="c_'+b.id+'">'+
           '<span class="coin"></span><span id="cn_'+b.id+'"></span></span>'+
         '<span class="svc-owned" id="o_'+b.id+'">0</span></span>';
       btn.addEventListener('click',()=>buy(b));
-      bEl.appendChild(btn);
+      const sellBtn=document.createElement('button');
+      sellBtn.type='button'; sellBtn.className='svc-sell'; sellBtn.id='s_'+b.id;
+      sellBtn.textContent='Sell 1';
+      sellBtn.addEventListener('click',()=>sell(b));
+      card.appendChild(btn); card.appendChild(sellBtn);
+      bEl.appendChild(card);
     });
+    const qtyToggle=$('qtyToggle');
+    if(qtyToggle){
+      qtyToggle.addEventListener('click',e=>{
+        const qbtn=e.target.closest('.qty-btn'); if(!qbtn) return;
+        buyQty=qbtn.dataset.qty==='max'?'max':parseInt(qbtn.dataset.qty,10);
+        qtyToggle.querySelectorAll('.qty-btn').forEach(x=>x.classList.toggle('active',x===qbtn));
+        render();
+      });
+    }
     const uEl=$('upgrades');
     upgrades.forEach(u=>{
       const btn=document.createElement('button');
@@ -182,11 +214,34 @@
   }
   document.addEventListener('click',e=>{ if(!e.target.closest('.tool')) closeTips(); });
 
-  function buy(b){ const c=costOf(b); if(state.wumps<c)return;
-    state.wumps-=c; state.owned[b.id]++; render(); save(); }
+  function buy(b){
+    const qty=qtyFor(b); if(qty<=0)return;
+    const c=costForQty(b,qty); if(state.wumps<c)return;
+    state.wumps-=c; state.owned[b.id]+=qty; render(); save();
+  }
+  function sell(b){
+    if(state.owned[b.id]<=0)return;
+    state.wumps+=sellValueFor(b); state.owned[b.id]--; render(); save();
+  }
   function buyUpgrade(u){ if(state.bought[u.id]||state.wumps<u.cost)return;
     if(u.unlock&&!u.unlock())return;
     state.wumps-=u.cost; state.bought[u.id]=true; if(u.apply) u.apply(state); render(); save(); }
+
+  function refreshBuildingCard(b){
+    const qty=qtyFor(b), costQty=qty>0?qty:1, c=costForQty(b,costQty), aff=qty>0&&state.wumps>=c;
+    const owned=state.owned[b.id];
+    $('cn_'+b.id).textContent=fmt(c);
+    $('c_'+b.id).className='svc-cost'+(aff?'':' cant');
+    $('o_'+b.id).textContent=owned;
+    $('q_'+b.id).textContent=qty>1?('×'+fmt(qty)):'';
+    $('y_'+b.id).textContent=owned>0
+      ? 'producing '+fmt(wpsOf(b))+'/sec' : '+'+fmt(b.wps*state.genMult*(state.buildMult[b.id]||1))+'/sec each';
+    $('b_'+b.id).disabled=!aff;
+    $('b_'+b.id).closest('.svc-card').classList.toggle('affordable',aff);
+    const sellBtn=$('s_'+b.id);
+    sellBtn.disabled=owned<=0;
+    sellBtn.textContent=owned>0?('Sell 1 · +'+fmt(sellValueFor(b))):'Sell 1';
+  }
 
   function render(){
     $('navBal').textContent=fmt(state.wumps);
@@ -198,15 +253,7 @@
     $('cSatisfied').textContent=fmt(Math.floor(state.total/80)+state.clicks);
     $('cHours').textContent=fmt(totalWps());
     $('cGrumbles').textContent=fmt(totalAssets());
-    buildings.forEach(b=>{
-      const c=costOf(b),aff=state.wumps>=c;
-      $('cn_'+b.id).textContent=fmt(c);
-      $('c_'+b.id).className='svc-cost'+(aff?'':' cant');
-      $('o_'+b.id).textContent=state.owned[b.id];
-      $('y_'+b.id).textContent=state.owned[b.id]>0
-        ? 'producing '+fmt(wpsOf(b))+'/sec' : '+'+fmt(b.wps*state.genMult*(state.buildMult[b.id]||1))+'/sec each';
-      const btn=$('b_'+b.id); btn.disabled=!aff; btn.classList.toggle('affordable',aff);
-    });
+    buildings.forEach(b=>refreshBuildingCard(b));
     upgrades.forEach(u=>{
       const btn=$('u_'+u.id),owned=!!state.bought[u.id],aff=state.wumps>=u.cost;
       const hidden=u.unlock&&!owned&&!u.unlock();
@@ -451,9 +498,7 @@
     $('navWps').textContent=fmt(totalWps());
     $('wps').textContent=fmt(totalWps());
     $('cHours').textContent=fmt(totalWps());
-    buildings.forEach(b=>{ const aff=state.wumps>=costOf(b),btn=$('b_'+b.id);
-      if(btn.disabled===aff){btn.disabled=!aff; btn.classList.toggle('affordable',aff);
-        $('c_'+b.id).className='svc-cost'+(aff?'':' cant');} });
+    buildings.forEach(b=>refreshBuildingCard(b));
     upgrades.forEach(u=>{ if(state.bought[u.id])return; const aff=state.wumps>=u.cost,btn=$('u_'+u.id);
       if(btn.classList.contains('affordable')!==aff){
         btn.classList.toggle('affordable',aff); btn.classList.toggle('cant',!aff); } });
