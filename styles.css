@@ -202,6 +202,7 @@
   .services{display:grid; grid-template-columns:1fr 1fr; gap:18px}
   @media (max-width:680px){ .services{grid-template-columns:1fr} }
   .svc-card{
+    display:flex; flex-direction:column;
     background:var(--surface); border:1px solid var(--line); border-radius:14px; overflow:hidden;
     transition:border-color .14s, box-shadow .14s, transform .08s;
   }
@@ -210,7 +211,7 @@
   .svc-card.affordable{border-color:rgba(23,195,178,.5)}
   .svc-buy{
     display:grid; grid-template-columns:52px 1fr auto; gap:16px; align-items:start; width:100%;
-    background:none; border:0; padding:18px 18px; text-align:left; cursor:pointer;
+    flex:1 1 auto; background:none; border:0; padding:18px 18px; text-align:left; cursor:pointer;
     font-family:inherit; color:var(--text);
   }
   .svc-buy:disabled{opacity:.55; cursor:not-allowed}
