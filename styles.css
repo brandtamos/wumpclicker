@@ -7,11 +7,11 @@
     --text:#e7e9ec; --muted:#98a2ad;
   }
   *{box-sizing:border-box; margin:0; padding:0}
-  html{scroll-behavior:smooth; overflow-x:hidden}
+  html{scroll-behavior:smooth; overflow-x:clip}
   body{
     font-family:'Poppins',system-ui,sans-serif; color:var(--text);
     background:var(--paper); line-height:1.6; -webkit-font-smoothing:antialiased;
-    touch-action:manipulation; overflow-x:hidden;
+    touch-action:manipulation; overflow-x:clip;
   }
   h1,h2,h3{font-family:'Poppins',sans-serif; line-height:1.15; color:#f3f4f6}
   .eyebrow{
@@ -190,7 +190,9 @@
   .powerups-title{font-size:clamp(20px,3vw,26px); font-weight:800; margin-bottom:16px}
 
   /* ---------- services / generators ---------- */
-  .qty-toggle{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap}
+  .qty-toggle{display:flex; gap:8px; margin-bottom:18px; flex-wrap:wrap;
+    position:sticky; top:var(--navH,64px); z-index:40; background:var(--paper);
+    padding:10px 0; border-bottom:1px solid var(--line)}
   .qty-btn{flex:1 1 90px; min-height:44px; background:var(--surface); border:1px solid var(--line);
     color:var(--muted); border-radius:10px; padding:10px 12px; font-family:'Poppins',sans-serif;
     font-weight:600; font-size:13px; cursor:pointer; transition:background .15s, color .15s, border-color .15s;
