@@ -341,27 +341,36 @@
   // more than desktop does, especially competing with a manual-click burst on the same thread.
   const AUTO_ORBIT_MAX=isTouch?12:24, AUTO_RING_CAP=8, AUTO_ORBIT_SPEED=0.16;
   const AUTO_PECK_MS=AUTO_CLICK_MS, AUTO_PECK_DUR_MS=350; // repeats once a second, but the jab itself stays quick
-  let autoOrbiters=[], autoOrbitAcc=0;
+  let autoOrbiters=[], autoOrbitAcc=0, lastAutoOwned=-1;
   function syncAutoOrbiters(){
     if(!autoOrbitEl) return;
-    const n=Math.min(state.owned.auto||0,AUTO_ORBIT_MAX);
-    if(n===autoOrbiters.length) return; // owned count unchanged: leave each orbiter's own progress alone
+    const owned=state.owned.auto||0;
+    if(owned===lastAutoOwned) return; // nothing changed since last sync
+    lastAutoOwned=owned;
+    const n=Math.min(owned,AUTO_ORBIT_MAX);
     while(autoOrbiters.length<n){
       const el=document.createElement('div'); el.className='auto-orbiter';
       const img=document.createElement('img'); img.src='favicon.svg'; img.alt='';
-      el.appendChild(img); autoOrbitEl.appendChild(el);
-      autoOrbiters.push({el,phase:Math.random()*Math.PI*2,hit:false});
+      const badge=document.createElement('span'); badge.className='auto-badge';
+      el.appendChild(img); el.appendChild(badge); autoOrbitEl.appendChild(el);
+      autoOrbiters.push({el,badge,phase:Math.random()*Math.PI*2,hit:false});
     }
     while(autoOrbiters.length>n){ autoOrbiters.pop().el.remove(); }
-    // only ring membership/pace metadata is recomputed here; existing orbiters keep their current
+    // only ring/badge/pace metadata is recomputed here; existing orbiters keep their current
     // phase so buying/selling doesn't snap everyone back into formation, only newcomers join fresh
     const total=autoOrbiters.length;
+    // once owned exceeds how many icons can be shown, each icon stands in for several units;
+    // spread the remainder across the first few icons so the badges sum back to the true total
+    const per=total?Math.floor(owned/total):0, extra=owned-per*total;
     autoOrbiters.forEach((o,i)=>{
       const ring=Math.floor(i/AUTO_RING_CAP);
       o.ring=ring;
       o.peckOffset=(i/total)*AUTO_PECK_MS; // staggered across every owned unit, not just within its own ring
       o.dir=ring%2===0?1:-1;
       o.speedMult=Math.max(0.45,1-ring*0.22);
+      const count=per+(i<extra?1:0);
+      if(count>1){ o.badge.textContent='×'+fmt(count); o.badge.style.display='flex'; }
+      else o.badge.style.display='none';
     });
     updateAutoOrbiters(performance.now(),0);
   }
