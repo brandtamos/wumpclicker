@@ -2,6 +2,8 @@
   "use strict";
 
   const buildings = [
+    {id:'auto',   name:'Wumpr Autoclicker', icon:'🖱️', base:50,        wps:0,
+     flavor:"A little favicon that orbits your wump button, tapping it once a second. Scales with your click power."},
     {id:'ident',  name:'Wump Identity',   icon:'🪪', base:15,          wps:0.1,
      flavor:'Identity experts make sure your wumps are yours and yours alone.'},
     {id:'box',    name:'Wump Boxing',     icon:'📦', base:100,         wps:1,
@@ -134,15 +136,23 @@
   const qtyFor=b=>buyQty==='max'?maxAffordable(b):buyQty;
   const sellValueFor=b=>state.owned[b.id]>0?Math.floor(b.base*Math.pow(RATE,state.owned[b.id]-1)*0.5):0;
   const wpsOf =b=>b.wps*state.owned[b.id]*state.genMult*(state.buildMult[b.id]||1);
-  const baseWps=()=>buildings.reduce((s,b)=>s+wpsOf(b),0);
   const totalAssets=()=>buildings.reduce((s,b)=>s+state.owned[b.id],0);
+  // certMult intentionally excludes the autoclicker itself: it feeds into clickPower, which
+  // feeds into autoclicker output, so counting owned autoclickers here would let them boost
+  // their own production and snowball quadratically. Other generators still count normally.
+  const certAssets=()=>buildings.reduce((s,b)=>s+(b.id==='auto'?0:state.owned[b.id]),0);
+  const certMult=()=>state.bought.cert?1+0.01*certAssets():1;
+  const AUTO_CLICK_MS=1000; // each autoclicker fires once a second; also drives the orbiter peck cadence below
+  const AUTO_CLICKS_PER_SEC=1000/AUTO_CLICK_MS;
+  const clickPower=()=>state.clickMult*certMult();
+  const autoClickWps=()=>state.owned.auto*AUTO_CLICKS_PER_SEC*clickPower()*state.genMult*(state.buildMult.auto||1);
+  const baseWps=()=>buildings.reduce((s,b)=>s+wpsOf(b),0)+autoClickWps();
   const frenzyMult=()=>{
     if(performance.now()>=frenzyUntil) return 1;
     return state.bought.saltcure?curFrenzyMult*(1+curFrenzyStreakBonus):curFrenzyMult+curFrenzyStreakBonus;
   };
   const overwumpOn=()=>!!state.bought.overwump&&ringAtMax;
   const runtimeMult=()=>frenzyMult()*(overwumpOn()?2:1);
-  const certMult=()=>state.bought.cert?1+0.01*totalAssets():1;
   const totalWps=()=>baseWps()*runtimeMult();
   const clickValue=()=>(state.clickMult*certMult()+baseWps()*state.clickWpsShare)*runtimeMult();
   const $=id=>document.getElementById(id);
@@ -234,8 +244,11 @@
     $('c_'+b.id).className='svc-cost'+(aff?'':' cant');
     $('o_'+b.id).textContent=owned;
     $('q_'+b.id).textContent=qty>1?('×'+fmt(qty)):'';
+    const perUnitWps=b.id==='auto'
+      ? AUTO_CLICKS_PER_SEC*clickPower()*state.genMult*(state.buildMult.auto||1)
+      : b.wps*state.genMult*(state.buildMult[b.id]||1);
     $('y_'+b.id).textContent=owned>0
-      ? 'producing '+fmt(wpsOf(b))+'/sec' : '+'+fmt(b.wps*state.genMult*(state.buildMult[b.id]||1))+'/sec each';
+      ? 'producing '+fmt(b.id==='auto'?autoClickWps():wpsOf(b))+'/sec' : '+'+fmt(perUnitWps)+'/sec each';
     $('b_'+b.id).disabled=!aff;
     $('b_'+b.id).closest('.svc-card').classList.toggle('affordable',aff);
     const sellBtn=$('s_'+b.id);
@@ -254,6 +267,7 @@
     $('cHours').textContent=fmt(totalWps());
     $('cGrumbles').textContent=fmt(totalAssets());
     buildings.forEach(b=>refreshBuildingCard(b));
+    syncAutoOrbiters();
     upgrades.forEach(u=>{
       const btn=$('u_'+u.id),owned=!!state.bought[u.id],aff=state.wumps>=u.cost;
       const hidden=u.unlock&&!owned&&!u.unlock();
@@ -296,6 +310,63 @@
     s.style.setProperty('--ty',(Math.sin(a)*dist).toFixed(1)+'px');
     const sz=(5+Math.random()*4).toFixed(1); s.style.width=sz+'px'; s.style.height=sz+'px';
     sparksEl.appendChild(s); setTimeout(()=>s.remove(),600);
+  }
+  function emitAutoHit(angle){
+    if(!sparksEl) return;
+    const w=sparksEl.clientWidth||280, h=sparksEl.clientHeight||w;
+    const cx=w/2, cy=h/2, r=w*0.36;
+    const hit=document.createElement('div'); hit.className='auto-hit';
+    hit.style.left=(cx+Math.cos(angle)*r)+'px'; hit.style.top=(cy+Math.sin(angle)*r)+'px';
+    sparksEl.appendChild(hit); setTimeout(()=>hit.remove(),300);
+  }
+
+  // orbiting favicons: one per owned Wumpr Autoclicker, each "pecking" the button on its own cycle.
+  // They stack into concentric shells (rings) as you own more, rather than crowding one ring:
+  // each ring alternates spin direction and slows slightly further out, like orbiting shells.
+  const wumpStageEl=document.querySelector('.wump-stage');
+  const autoOrbitEl=document.getElementById('autoOrbit');
+  const AUTO_ORBIT_MAX=24, AUTO_RING_CAP=8, AUTO_ORBIT_SPEED=0.16;
+  const AUTO_PECK_MS=AUTO_CLICK_MS, AUTO_PECK_DUR_MS=350; // repeats once a second, but the jab itself stays quick
+  let autoOrbiters=[];
+  function syncAutoOrbiters(){
+    if(!autoOrbitEl) return;
+    const n=Math.min(state.owned.auto||0,AUTO_ORBIT_MAX);
+    if(n===autoOrbiters.length) return; // owned count unchanged: leave each orbiter's own progress alone
+    while(autoOrbiters.length<n){
+      const el=document.createElement('div'); el.className='auto-orbiter';
+      const img=document.createElement('img'); img.src='favicon.svg'; img.alt='';
+      el.appendChild(img); autoOrbitEl.appendChild(el);
+      autoOrbiters.push({el,phase:Math.random()*Math.PI*2,hit:false});
+    }
+    while(autoOrbiters.length>n){ autoOrbiters.pop().el.remove(); }
+    // only ring membership/pace metadata is recomputed here; existing orbiters keep their current
+    // phase so buying/selling doesn't snap everyone back into formation, only newcomers join fresh
+    const total=autoOrbiters.length;
+    autoOrbiters.forEach((o,i)=>{
+      const ring=Math.floor(i/AUTO_RING_CAP);
+      o.ring=ring;
+      o.peckOffset=(i/total)*AUTO_PECK_MS; // staggered across every owned unit, not just within its own ring
+      o.dir=ring%2===0?1:-1;
+      o.speedMult=Math.max(0.45,1-ring*0.22);
+    });
+    updateAutoOrbiters(performance.now(),0);
+  }
+  function updateAutoOrbiters(now,dt){
+    if(!autoOrbiters.length||!wumpStageEl) return;
+    const w=wumpStageEl.clientWidth||280, h=wumpStageEl.clientHeight||w;
+    const cx=w/2, cy=h/2, baseR=w*0.46, ringGap=w*0.085;
+    autoOrbiters.forEach(o=>{
+      o.phase+=AUTO_ORBIT_SPEED*o.speedMult*o.dir*dt;
+      const ringR=baseR+o.ring*ringGap;
+      let radius=ringR;
+      const tMs=(now+o.peckOffset)%AUTO_PECK_MS;
+      if(tMs<AUTO_PECK_DUR_MS){
+        radius=ringR-Math.sin((tMs/AUTO_PECK_DUR_MS)*Math.PI)*14;
+        if(!o.hit&&tMs>=AUTO_PECK_DUR_MS/2){ o.hit=true; emitAutoHit(o.phase); }
+      } else if(o.hit) o.hit=false;
+      const x=cx+Math.cos(o.phase)*radius, y=cy+Math.sin(o.phase)*radius;
+      o.el.style.transform='translate('+(x-11).toFixed(1)+'px,'+(y-11).toFixed(1)+'px)';
+    });
   }
   function doClick(e){
     const gain=clickValue();
@@ -524,6 +595,7 @@
         lastSpark=now; emitSpark(); if(Math.random()<0.6) emitSpark();
       }
     } else ringAtMax=false;
+    if(!reduceMotion) updateAutoOrbiters(now,dt);
     if(banner){
       if(performance.now()<frenzyUntil){
         const streakTxt=curFrenzyStreakBonus>0?(state.bought.saltcure?' ×'+(1+curFrenzyStreakBonus).toFixed(1)+' streak':' +'+curFrenzyStreakBonus.toFixed(1)+'x streak'):'';

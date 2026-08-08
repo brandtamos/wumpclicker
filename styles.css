@@ -117,7 +117,7 @@
   .wump-stage{position:relative; width:clamp(158px,42vw,280px); height:clamp(158px,42vw,280px);
     margin:6px auto 22px; display:flex; align-items:center; justify-content:center}
   .wump-ring{position:absolute; inset:0; width:100%; height:100%; pointer-events:none;
-    transform-origin:center; will-change:transform}
+    transform-origin:center; will-change:transform; z-index:5}
   .wump-ring text{fill:var(--pink); font-family:'Poppins',sans-serif; font-weight:600;
     font-size:13px; letter-spacing:2px; text-transform:uppercase}
   .wump-badge{
@@ -143,6 +143,10 @@
     20%{transform:translate(-50%,-10px) scale(1.06)}
     100%{opacity:0; transform:translate(-50%,-72px) scale(1)}
   }
+  .auto-orbit{position:absolute; inset:0; pointer-events:none; z-index:4; overflow:visible}
+  .auto-orbiter{position:absolute; left:0; top:0; width:22px; height:22px;
+    will-change:transform; filter:drop-shadow(0 2px 6px rgba(0,0,0,.55))}
+  .auto-orbiter img{width:100%; height:100%; display:block; border-radius:5px}
   .sparks{position:absolute; inset:0; pointer-events:none; z-index:6; overflow:visible}
   .spark{position:absolute; width:7px; height:7px; border-radius:50%;
     background:radial-gradient(circle at 50% 50%,#ffd6e8 0%,var(--pink) 55%,rgba(255,79,154,0) 78%);
@@ -151,6 +155,13 @@
   @keyframes spark{
     0%{opacity:1; transform:translate(-50%,-50%) scale(1)}
     100%{opacity:0; transform:translate(calc(-50% + var(--tx)),calc(-50% + var(--ty))) scale(.25)}
+  }
+  .auto-hit{position:absolute; width:14px; height:14px; border-radius:50%;
+    border:2px solid var(--pink); pointer-events:none; will-change:transform,opacity;
+    animation:autoHit .3s ease-out forwards}
+  @keyframes autoHit{
+    0%{opacity:.95; transform:translate(-50%,-50%) scale(.3)}
+    100%{opacity:0; transform:translate(-50%,-50%) scale(2)}
   }
   .wump-badge.charged{box-shadow:0 0 0 4px var(--pink), 0 0 0 12px rgba(255,79,154,.32),
     0 0 36px rgba(255,79,154,.6), 0 20px 44px rgba(0,0,0,.4)}
