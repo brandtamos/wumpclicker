@@ -297,11 +297,23 @@
   const R_BASE=14, R_MAX=960, R_BOOST=80, R_GRACE=450, R_DECAY=2.4;
   let ringAngle=0, ringVel=R_BASE, lastBoost=-1e9;
 
+  // wump-stage's size is measured once (and on resize) rather than every frame: clientWidth/Height
+  // force a synchronous layout flush, and re-reading them 60x/sec inside the animation loop below
+  // was the main source of the frame-rate drop once autoclickers came into the picture.
+  const wumpStageEl=document.querySelector('.wump-stage');
+  let stageW=280, stageH=280;
+  function measureStage(){
+    if(!wumpStageEl) return;
+    stageW=wumpStageEl.clientWidth||280; stageH=wumpStageEl.clientHeight||stageW;
+  }
+  measureStage();
+  window.addEventListener('resize', measureStage);
+
   const sparksEl=document.getElementById('sparks');
   let lastSpark=0;
   function emitSpark(){
     if(!sparksEl) return;
-    const w=sparksEl.clientWidth||280, h=sparksEl.clientHeight||w;
+    const w=stageW, h=stageH;
     const cx=w/2, cy=h/2, r=w*0.36;
     const a=Math.random()*Math.PI*2, dist=w*0.16+Math.random()*w*0.14;
     const s=document.createElement('div'); s.className='spark';
@@ -313,7 +325,7 @@
   }
   function emitAutoHit(angle){
     if(!sparksEl) return;
-    const w=sparksEl.clientWidth||280, h=sparksEl.clientHeight||w;
+    const w=stageW, h=stageH;
     const cx=w/2, cy=h/2, r=w*0.36;
     const hit=document.createElement('div'); hit.className='auto-hit';
     hit.style.left=(cx+Math.cos(angle)*r)+'px'; hit.style.top=(cy+Math.sin(angle)*r)+'px';
@@ -323,7 +335,6 @@
   // orbiting favicons: one per owned Wumpr Autoclicker, each "pecking" the button on its own cycle.
   // They stack into concentric shells (rings) as you own more, rather than crowding one ring:
   // each ring alternates spin direction and slows slightly further out, like orbiting shells.
-  const wumpStageEl=document.querySelector('.wump-stage');
   const autoOrbitEl=document.getElementById('autoOrbit');
   const AUTO_ORBIT_MAX=24, AUTO_RING_CAP=8, AUTO_ORBIT_SPEED=0.16;
   const AUTO_PECK_MS=AUTO_CLICK_MS, AUTO_PECK_DUR_MS=350; // repeats once a second, but the jab itself stays quick
@@ -352,8 +363,8 @@
     updateAutoOrbiters(performance.now(),0);
   }
   function updateAutoOrbiters(now,dt){
-    if(!autoOrbiters.length||!wumpStageEl) return;
-    const w=wumpStageEl.clientWidth||280, h=wumpStageEl.clientHeight||w;
+    if(!autoOrbiters.length) return;
+    const w=stageW, h=stageH;
     const cx=w/2, cy=h/2, baseR=w*0.46, ringGap=w*0.085;
     autoOrbiters.forEach(o=>{
       o.phase+=AUTO_ORBIT_SPEED*o.speedMult*o.dir*dt;
