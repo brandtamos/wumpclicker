@@ -339,7 +339,7 @@
   // touch devices get fewer orbiters and a lower update rate for them: each one carries a
   // continuously-transformed, drop-shadowed element, and mobile GPUs/CPUs feel that a lot
   // more than desktop does, especially competing with a manual-click burst on the same thread.
-  const AUTO_ORBIT_MAX=isTouch?12:24, AUTO_RING_CAP=8, AUTO_ORBIT_SPEED=0.16;
+  const AUTO_ORBIT_MAX=isTouch?10:24, AUTO_RING_CAP=8, AUTO_ORBIT_SPEED=0.16;
   const AUTO_PECK_MS=AUTO_CLICK_MS, AUTO_PECK_DUR_MS=350; // repeats once a second, but the jab itself stays quick
   let autoOrbiters=[], autoOrbitAcc=0, lastAutoOwned=-1;
   function syncAutoOrbiters(){
