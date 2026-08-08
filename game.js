@@ -336,9 +336,12 @@
   // They stack into concentric shells (rings) as you own more, rather than crowding one ring:
   // each ring alternates spin direction and slows slightly further out, like orbiting shells.
   const autoOrbitEl=document.getElementById('autoOrbit');
-  const AUTO_ORBIT_MAX=24, AUTO_RING_CAP=8, AUTO_ORBIT_SPEED=0.16;
+  // touch devices get fewer orbiters and a lower update rate for them: each one carries a
+  // continuously-transformed, drop-shadowed element, and mobile GPUs/CPUs feel that a lot
+  // more than desktop does, especially competing with a manual-click burst on the same thread.
+  const AUTO_ORBIT_MAX=isTouch?12:24, AUTO_RING_CAP=8, AUTO_ORBIT_SPEED=0.16;
   const AUTO_PECK_MS=AUTO_CLICK_MS, AUTO_PECK_DUR_MS=350; // repeats once a second, but the jab itself stays quick
-  let autoOrbiters=[];
+  let autoOrbiters=[], autoOrbitAcc=0;
   function syncAutoOrbiters(){
     if(!autoOrbitEl) return;
     const n=Math.min(state.owned.auto||0,AUTO_ORBIT_MAX);
@@ -606,7 +609,16 @@
         lastSpark=now; emitSpark(); if(Math.random()<0.6) emitSpark();
       }
     } else ringAtMax=false;
-    if(!reduceMotion) updateAutoOrbiters(now,dt);
+    if(!reduceMotion){
+      if(isTouch){
+        // 30fps is plenty for a slow ambient orbit; halving the update rate halves this
+        // system's share of the main thread right when a mobile tap burst needs it most.
+        autoOrbitAcc+=dt;
+        if(autoOrbitAcc>=1/30){ updateAutoOrbiters(now,autoOrbitAcc); autoOrbitAcc=0; }
+      } else {
+        updateAutoOrbiters(now,dt);
+      }
+    }
     if(banner){
       if(performance.now()<frenzyUntil){
         const streakTxt=curFrenzyStreakBonus>0?(state.bought.saltcure?' ×'+(1+curFrenzyStreakBonus).toFixed(1)+' streak':' +'+curFrenzyStreakBonus.toFixed(1)+'x streak'):'';
