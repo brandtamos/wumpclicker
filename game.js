@@ -368,14 +368,16 @@
   function updateAutoOrbiters(now,dt){
     if(!autoOrbiters.length) return;
     const w=stageW, h=stageH;
-    const cx=w/2, cy=h/2, baseR=w*0.46, ringGap=w*0.085;
+    const cx=w/2, cy=h/2, baseR=w*0.46, ringGap=w*0.085, buttonR=w*0.36;
     autoOrbiters.forEach(o=>{
       o.phase+=AUTO_ORBIT_SPEED*o.speedMult*o.dir*dt;
       const ringR=baseR+o.ring*ringGap;
       let radius=ringR;
       const tMs=(now+o.peckOffset)%AUTO_PECK_MS;
       if(tMs<AUTO_PECK_DUR_MS){
-        radius=ringR-Math.sin((tMs/AUTO_PECK_DUR_MS)*Math.PI)*14;
+        // dip all the way to the button's edge (not just partway), regardless of which ring
+        // this orbiter is in, so every peck actually makes contact instead of hovering near it
+        radius=ringR-(ringR-buttonR)*Math.sin((tMs/AUTO_PECK_DUR_MS)*Math.PI);
         if(!o.hit&&tMs>=AUTO_PECK_DUR_MS/2){ o.hit=true; emitAutoHit(o.phase); }
       } else if(o.hit) o.hit=false;
       const x=cx+Math.cos(o.phase)*radius, y=cy+Math.sin(o.phase)*radius;
